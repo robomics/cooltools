@@ -1,5 +1,6 @@
 import multiprocess as mp
 import click
+import numpy as np
 
 import cooler
 
@@ -45,6 +46,15 @@ from .. import api
     is_flag=True,
 )
 @click.option(
+    "--seed",
+    help="Seed used to initialize the PRNG. "
+    "When unspecified the PRNG will be randomly initialized. "
+    "Ignored when --nproc is set to more than 1.",
+    type=int,
+    default=None,
+    show_default=True,
+)
+@click.option(
     "--nproc",
     "-p",
     help="Number of processes to split the work between."
@@ -59,7 +69,7 @@ from .. import api
     default=int(1e7),
     show_default=True,
 )
-def random_sample(in_path, out_path, count, cis_count, frac, exact, nproc, chunksize):
+def random_sample(in_path, out_path, count, cis_count, frac, exact, seed, nproc, chunksize):
     """
     Pick a random sample of contacts from a Hi-C map.
 
@@ -75,6 +85,8 @@ def random_sample(in_path, out_path, count, cis_count, frac, exact, nproc, chunk
         pool = mp.Pool(nproc)
         map_ = pool.map
     else:
+        if seed is not None:
+            np.random.seed(seed)
         map_ = map
 
     try:
